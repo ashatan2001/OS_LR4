@@ -1,4 +1,4 @@
-﻿#include <windows.h>
+#include <windows.h>
 #include <iostream>
 #include <string>
 
@@ -7,37 +7,38 @@ using std::endl;
 using std::cin;
 using std::string;
 
-void CALLBACK CompletionRoutine(DWORD errorCode, DWORD bytestransfered, LPOVERLAPPED lpOverlapped) { } // функция завершения 
+char* data = new char[256];
+
+void CALLBACK CompletionRoutine(DWORD errorCode, DWORD bytestransfered, LPOVERLAPPED lpOverlapped) { // функция завершения
+    cout << data << endl << endl;
+}
 
 int main() {
-	bool running = true;
-	HANDLE pipe;
-	string pipename;
-	char* data = new char[256];
-	OVERLAPPED overlapped;
-	BOOL isRead;
+    bool running = true;
+    HANDLE pipe;
+    string pipename;
+    OVERLAPPED overlapped;
+    BOOL isRead;
 
-	ZeroMemory(&overlapped, sizeof(overlapped));
+    ZeroMemory(&overlapped, sizeof(overlapped));
 
-	pipename = "\\\\.\\pipe\\name";
-	pipe = CreateFileA(pipename.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, 
-		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL); // подключение к именованному каналу
+    pipename = "\\\\.\\pipe\\name";
+    pipe = CreateFileA(pipename.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL,
+                       OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL); // подключение к именованному каналу
 
-	cout << "Result:\n";
-	
-	while (running) {
-		isRead = ReadFileEx(pipe, data, 256, &overlapped, CompletionRoutine); // чтение данных
+    cout << "Result:\n";
 
-		if (isRead && pipe != INVALID_HANDLE_VALUE) {
-			cout << data << endl << endl;
+    while (running) {
+        isRead = ReadFileEx(pipe, data, 256, &overlapped, CompletionRoutine); // чтение данных
 
-			SleepEx(INFINITE, TRUE); // вызов функции завершения
-		}
-		else {
-			cout << "Client finished\n";
-			running = false;
-		}
-	}
+        if (isRead && pipe != INVALID_HANDLE_VALUE) {
+            SleepEx(INFINITE, TRUE); // вызов функции завершения
+        }
+        else {
+            cout << "Client finished\n";
+            running = false;
+        }
+    }
 
-	return 0;
+    return 0;
 }
